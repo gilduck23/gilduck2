@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -21,10 +21,8 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   image: text("image").notNull(),
-  price: integer("price").notNull(),
   categoryId: integer("category_id").notNull(),
   sku: text("sku").notNull(),
-  inStock: boolean("in_stock").notNull().default(true),
   specifications: text("specifications").array(),
   variants: text("variants").array(), // Store variants as JSON strings
 });

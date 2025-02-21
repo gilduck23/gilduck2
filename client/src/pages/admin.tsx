@@ -34,10 +34,8 @@ export default function AdminPage() {
       name: "",
       description: "",
       image: "",
-      price: 0,
       categoryId: 1,
       sku: "",
-      inStock: true,
       specifications: [],
       variants: []
     }
@@ -56,6 +54,12 @@ export default function AdminPage() {
   // Queries
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+    queryFn: async () => {
+      const res = await fetch("/api/products");
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      return data.products; // Get products array from response
+    }
   });
 
   const { data: categories } = useQuery<Category[]>({
@@ -260,19 +264,6 @@ export default function AdminPage() {
                     )}
                   />
 
-                  <FormField
-                    control={productForm.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price (in cents)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={productForm.control}
