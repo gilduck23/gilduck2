@@ -24,7 +24,7 @@ export function ProtectedRoute({
   if (!user || user.role !== "admin") {
     return (
       <Route path={path}>
-        <Redirect to="/" />
+        <Redirect to="/auth" />
       </Route>
     );
   }

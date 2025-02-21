@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema, type InsertProduct, type Product, type ProductVariant } from "@shared/schema";
-import { insertCategorySchema, type InsertCategory, type Category } from "@shared/schema"; // Added import for category schema
+import { insertCategorySchema, type InsertCategory, type Category } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,20 +12,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Trash2, Plus } from "lucide-react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-
-// Basic auth credentials
-const credentials = btoa("gilduck:gilduck");
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function AdminPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const { user } = useAuth();
 
   // Product form
   const productForm = useForm<InsertProduct>({
@@ -58,7 +52,7 @@ export default function AdminPage() {
       const res = await fetch("/api/products");
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
-      return data.products; // Get products array from response
+      return data.products;
     }
   });
 
@@ -98,11 +92,7 @@ export default function AdminPage() {
         variants: variants.length > 0 ? [JSON.stringify(variants)] : []
       };
 
-      const res = await apiRequest("POST", "/api/admin/products", productWithVariants, {
-        headers: {
-          Authorization: `Basic ${credentials}`
-        }
-      });
+      const res = await apiRequest("POST", "/api/admin/products", productWithVariants);
       return res.json();
     },
     onSuccess: () => {
@@ -125,11 +115,7 @@ export default function AdminPage() {
 
   const deleteProduct = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admin/products/${id}`, undefined, {
-        headers: {
-          Authorization: `Basic ${credentials}`
-        }
-      });
+      await apiRequest("DELETE", `/api/admin/products/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -150,11 +136,7 @@ export default function AdminPage() {
   // Category mutations
   const addCategory = useMutation({
     mutationFn: async (data: InsertCategory) => {
-      const res = await apiRequest("POST", "/api/admin/categories", data, {
-        headers: {
-          Authorization: `Basic ${credentials}`
-        }
-      });
+      const res = await apiRequest("POST", "/api/admin/categories", data);
       return res.json();
     },
     onSuccess: () => {
@@ -176,11 +158,7 @@ export default function AdminPage() {
 
   const deleteCategory = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admin/categories/${id}`, undefined, {
-        headers: {
-          Authorization: `Basic ${credentials}`
-        }
-      });
+      await apiRequest("DELETE", `/api/admin/categories/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -204,6 +182,10 @@ export default function AdminPage() {
 
   async function onCategorySubmit(data: InsertCategory) {
     addCategory.mutate(data);
+  }
+
+  if (!user || user.role !== "admin") {
+    return null;
   }
 
   return (

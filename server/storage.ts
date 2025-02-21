@@ -51,7 +51,7 @@ export class MemStorage implements IStorage {
     // Update IDs based on seeded data
     this.nextProductId = Math.max(...Array.from(this.products.keys()), 0) + 1;
     this.nextCategoryId = Math.max(...Array.from(this.categories.keys()), 0) + 1;
-    this.nextUserId = 1; // Start with 1 for users
+    this.nextUserId = Math.max(...Array.from(this.users.keys()), 0) + 1; // Start with 1 for users
   }
 
   // User management methods
@@ -252,6 +252,14 @@ export class MemStorage implements IStorage {
         parsedVariants: prod.parsedVariants
       });
     });
+
+    // Create initial admin user
+    const adminUser: InsertUser = {
+      username: "admin",
+      password: "$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu9.m", // This is a hashed version of "adminpassword"
+      role: "admin"
+    };
+    this.createUser(adminUser);
   }
 }
 
