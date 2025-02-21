@@ -13,6 +13,7 @@ export interface IStorage {
   addCategory(category: InsertCategory): Promise<Category>;
   deleteCategory(id: number): Promise<boolean>;
   updateCategory(id: number, category: InsertCategory): Promise<Category | undefined>;
+  getProductsPage(page: number, limit: number, categoryId?: number): Promise<{ products: Product[], total: number }>;
 }
 
 export class MemStorage implements IStorage {
@@ -105,6 +106,21 @@ export class MemStorage implements IStorage {
     return updatedCategory;
   }
 
+  async getProductsPage(page: number, limit: number, categoryId?: number): Promise<{ products: Product[], total: number }> {
+    const allProducts = Array.from(this.products.values());
+    const filteredProducts = categoryId
+      ? allProducts.filter(p => p.categoryId === categoryId)
+      : allProducts;
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    return {
+      products: filteredProducts.slice(start, end),
+      total: filteredProducts.length
+    };
+  }
+
   private seedData() {
     // Seed categories
     const categories: InsertCategory[] = [
@@ -134,78 +150,62 @@ export class MemStorage implements IStorage {
       this.categories.set(index + 1, { ...cat, id: index + 1 });
     });
 
-    // Seed products with variants
-    const products: (InsertProduct & { parsedVariants: ProductVariant[] })[] = [
+    // Generate 50 products
+    const productTemplates = [
       {
         name: "Industrial Drill Press",
         description: "Heavy-duty drill press with variable speed control",
-        image: "https://images.unsplash.com/photo-1505468726633-0069fc52f4b9",
-        price: 129999,
+        basePrice: 129999,
         categoryId: 1,
-        sku: "DP-1001",
-        inStock: true,
-        specifications: ["1.5 HP Motor", "12-Speed", "4-Inch Quill Stroke"],
-        variants: [],
-        parsedVariants: [
-          {
-            id: "v1",
-            name: "Standard Model",
-            image: "https://images.unsplash.com/photo-1505468726633-0069fc52f4b9"
-          },
-          {
-            id: "v2",
-            name: "Professional Model",
-            image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407"
-          }
-        ]
+        image: "https://images.unsplash.com/photo-1505468726633-0069fc52f4b9"
       },
       {
         name: "Safety Goggles",
         description: "Impact-resistant safety goggles with anti-fog coating",
-        image: "https://images.unsplash.com/photo-1673201159882-725f2b63dc39",
-        price: 2999,
+        basePrice: 2999,
         categoryId: 2,
-        sku: "SG-2001",
-        inStock: true,
-        specifications: ["ANSI Z87.1 Certified", "UV Protection", "Adjustable Strap"],
-        variants: [],
-        parsedVariants: [
-          {
-            id: "v1",
-            name: "Clear Lens",
-            image: "https://images.unsplash.com/photo-1673201159882-725f2b63dc39"
-          },
-          {
-            id: "v2",
-            name: "Tinted Lens",
-            image: "https://images.unsplash.com/photo-1584467541268-b040f83be3fd"
-          }
-        ]
+        image: "https://images.unsplash.com/photo-1673201159882-725f2b63dc39"
       },
       {
         name: "Digital Caliper",
         description: "Professional digital caliper with LCD display",
-        image: "https://images.unsplash.com/photo-1693155257465-f29b58ecadaa",
-        price: 4999,
+        basePrice: 4999,
         categoryId: 3,
-        sku: "DC-3001",
-        inStock: true,
-        specifications: ["0-6 Inch Range", "0.001\" Resolution", "IP54 Rated"],
-        variants: [],
-        parsedVariants: [
-          {
-            id: "v1",
-            name: "Standard",
-            image: "https://images.unsplash.com/photo-1693155257465-f29b58ecadaa"
-          },
-          {
-            id: "v2",
-            name: "Professional",
-            image: "https://images.unsplash.com/photo-1589438102453-a437dd5df038"
-          }
-        ]
+        image: "https://images.unsplash.com/photo-1693155257465-f29b58ecadaa"
       }
     ];
+
+    const products: (InsertProduct & { parsedVariants: ProductVariant[] })[] = [];
+
+    // Generate 50 products based on templates
+    for (let i = 0; i < 50; i++) {
+      const template = productTemplates[i % productTemplates.length];
+      const variants: ProductVariant[] = [
+        {
+          id: `v1-${i}`,
+          name: "Standard Model",
+          image: template.image
+        },
+        {
+          id: `v2-${i}`,
+          name: "Professional Model",
+          image: template.image
+        }
+      ];
+
+      products.push({
+        name: `${template.name} - Model ${Math.floor(i / 3) + 1}`,
+        description: template.description,
+        image: template.image,
+        price: template.basePrice + (Math.floor(Math.random() * 10000)),
+        categoryId: template.categoryId,
+        sku: `SKU-${template.categoryId}-${i + 1}`,
+        inStock: Math.random() > 0.2,
+        specifications: ["Specification 1", "Specification 2", "Specification 3"],
+        variants: [],
+        parsedVariants: variants
+      });
+    }
 
     products.forEach((prod, index) => {
       const variants = JSON.stringify(prod.parsedVariants);

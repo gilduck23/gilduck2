@@ -12,15 +12,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/products", async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 24;
     const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
     const search = req.query.search as string | undefined;
 
     if (search) {
       const products = await storage.searchProducts(search);
-      res.json(products);
+      res.json({
+        products,
+        total: products.length,
+        page,
+        limit
+      });
     } else {
-      const products = await storage.getProducts(categoryId);
-      res.json(products);
+      const { products, total } = await storage.getProductsPage(page, limit, categoryId);
+      res.json({
+        products,
+        total,
+        page,
+        limit
+      });
     }
   });
 
