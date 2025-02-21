@@ -6,7 +6,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="h-16 flex items-center justify-between">
           <Link href="/">
-            <a className="text-xl font-bold">Industrial Pro</a>
+            <a className="text-xl font-bold">Aozini12</a>
           </Link>
         </div>
       </div>
