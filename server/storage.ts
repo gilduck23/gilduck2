@@ -23,7 +23,7 @@ export interface IStorage {
   // Session store
   sessionStore: session.Store;
 
-  // Product and category management
+  // Existing methods
   getCategories(): Promise<Category[]>;
   getProducts(categoryId?: number): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
@@ -56,8 +56,12 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000 // prune expired entries every 24h
     });
 
-    // Initialize data
-    this.seedData().catch(console.error);
+    // Seed data
+    this.seedData();
+    // Update IDs based on seeded data
+    this.nextProductId = Math.max(...Array.from(this.products.keys()), 0) + 1;
+    this.nextCategoryId = Math.max(...Array.from(this.categories.keys()), 0) + 1;
+    this.nextUserId = Math.max(...Array.from(this.users.keys()), 0) + 1;
   }
 
   // User management methods
@@ -84,7 +88,6 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  // Product and category methods
   async getCategories(): Promise<Category[]> {
     return Array.from(this.categories.values());
   }
@@ -184,12 +187,84 @@ export class MemStorage implements IStorage {
         name: "Measurement Tools",
         image: "https://images.unsplash.com/photo-1521291410923-42c74153b0f9",
         description: "Precision measurement and testing equipment"
+      },
+      {
+        name: "Fasteners",
+        image: "https://images.unsplash.com/photo-1563681352142-9a8dcf92a2f1",
+        description: "Industrial fasteners and hardware"
       }
     ];
 
-    for (const cat of categories) {
-      await this.addCategory(cat);
+    categories.forEach((cat, index) => {
+      this.categories.set(index + 1, { ...cat, id: index + 1 });
+    });
+
+    // Generate 50 products
+    const productTemplates = [
+      {
+        name: "Industrial Drill Press",
+        description: "Heavy-duty drill press with variable speed control",
+        basePrice: 129999,
+        categoryId: 1,
+        image: "https://images.unsplash.com/photo-1505468726633-0069fc52f4b9"
+      },
+      {
+        name: "Safety Goggles",
+        description: "Impact-resistant safety goggles with anti-fog coating",
+        basePrice: 2999,
+        categoryId: 2,
+        image: "https://images.unsplash.com/photo-1673201159882-725f2b63dc39"
+      },
+      {
+        name: "Digital Caliper",
+        description: "Professional digital caliper with LCD display",
+        basePrice: 4999,
+        categoryId: 3,
+        image: "https://images.unsplash.com/photo-1693155257465-f29b58ecadaa"
+      }
+    ];
+
+    const products: (InsertProduct & { parsedVariants: ProductVariant[] })[] = [];
+
+    // Generate 50 products based on templates
+    for (let i = 0; i < 50; i++) {
+      const template = productTemplates[i % productTemplates.length];
+      const variants: ProductVariant[] = [
+        {
+          id: `v1-${i}`,
+          name: "Standard Model",
+          image: template.image
+        },
+        {
+          id: `v2-${i}`,
+          name: "Professional Model",
+          image: template.image
+        }
+      ];
+
+      products.push({
+        name: `${template.name} - Model ${Math.floor(i / 3) + 1}`,
+        description: template.description,
+        image: template.image,
+        price: template.basePrice + (Math.floor(Math.random() * 10000)),
+        categoryId: template.categoryId,
+        sku: `SKU-${template.categoryId}-${i + 1}`,
+        inStock: Math.random() > 0.2,
+        specifications: ["Specification 1", "Specification 2", "Specification 3"],
+        variants: [],
+        parsedVariants: variants
+      });
     }
+
+    products.forEach((prod, index) => {
+      const variants = JSON.stringify(prod.parsedVariants);
+      this.products.set(index + 1, {
+        ...prod,
+        id: index + 1,
+        variants: [variants],
+        parsedVariants: prod.parsedVariants
+      });
+    });
 
     // Create initial admin user with proper password hashing
     const adminPassword = await createInitialAdminPassword();
@@ -198,7 +273,7 @@ export class MemStorage implements IStorage {
       password: adminPassword,
       role: "admin"
     };
-    await this.createUser(adminUser);
+    this.createUser(adminUser);
   }
 }
 
