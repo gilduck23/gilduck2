@@ -1,3 +1,13 @@
+
+async updateUser(id: number, data: Partial<typeof users.$inferInsert>) {
+  const [updatedUser] = await this.db
+    .update(users)
+    .set(data)
+    .where(eq(users.id, id))
+    .returning();
+  return updatedUser;
+}
+
 import { Category, InsertCategory, InsertProduct, Product, ProductVariant, User, InsertUser } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
