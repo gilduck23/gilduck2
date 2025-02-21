@@ -10,14 +10,16 @@ interface ProductGridProps {
 export default function ProductGrid({ products, isLoading }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="space-y-4">
-              <Skeleton className="w-full aspect-square rounded-xl" />
-              <div className="space-y-2.5 px-1">
-                <Skeleton className="h-5 w-4/5" />
-                <Skeleton className="h-4 w-2/3" />
+            <div key={i} className="h-full">
+              <div className="space-y-4 h-full">
+                <Skeleton className="w-full aspect-square rounded-xl" />
+                <div className="space-y-2.5 px-1">
+                  <Skeleton className="h-5 w-4/5" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
               </div>
             </div>
           ))}
@@ -28,7 +30,7 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
 
   if (products.length === 0) {
     return (
-      <div className="container mx-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center py-20">
           <p className="text-lg text-muted-foreground">No products found</p>
         </div>
@@ -37,10 +39,12 @@ export default function ProductGrid({ products, isLoading }: ProductGridProps) {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <div key={product.id} className="h-full">
+            <ProductCard product={product} />
+          </div>
         ))}
       </div>
     </div>

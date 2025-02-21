@@ -10,7 +10,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/product/${product.id}`}>
-      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
+      <Card className="group h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
         <div className="relative aspect-square overflow-hidden bg-secondary/5">
           <img
             src={product.image}
@@ -19,7 +19,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="flex-1 p-4">
           <div className="space-y-2.5">
             <h3 className="font-medium text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors duration-300">
               {product.name}
@@ -30,7 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardContent>
 
-        <CardFooter className="px-4 py-3 border-t bg-secondary/5">
+        <CardFooter className="mt-auto px-4 py-3 border-t bg-secondary/5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Package className="h-4 w-4" />
             <span className="font-medium">SKU: {product.sku}</span>
