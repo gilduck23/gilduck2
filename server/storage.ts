@@ -1,4 +1,4 @@
-import { Category, InsertCategory, InsertProduct, Product } from "@shared/schema";
+import { Category, InsertCategory, InsertProduct, Product, ProductVariant } from "@shared/schema";
 
 export interface IStorage {
   getCategories(): Promise<Category[]>;
@@ -73,8 +73,8 @@ export class MemStorage implements IStorage {
       this.categories.set(index + 1, { ...cat, id: index + 1 });
     });
 
-    // Seed products
-    const products: InsertProduct[] = [
+    // Seed products with variants
+    const products: (InsertProduct & { parsedVariants: ProductVariant[] })[] = [
       {
         name: "Industrial Drill Press",
         description: "Heavy-duty drill press with variable speed control",
@@ -83,7 +83,20 @@ export class MemStorage implements IStorage {
         categoryId: 1,
         sku: "DP-1001",
         inStock: true,
-        specifications: ["1.5 HP Motor", "12-Speed", "4-Inch Quill Stroke"]
+        specifications: ["1.5 HP Motor", "12-Speed", "4-Inch Quill Stroke"],
+        variants: [],
+        parsedVariants: [
+          {
+            id: "v1",
+            name: "Standard Model",
+            image: "https://images.unsplash.com/photo-1505468726633-0069fc52f4b9"
+          },
+          {
+            id: "v2",
+            name: "Professional Model",
+            image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407"
+          }
+        ]
       },
       {
         name: "Safety Goggles",
@@ -93,7 +106,20 @@ export class MemStorage implements IStorage {
         categoryId: 2,
         sku: "SG-2001",
         inStock: true,
-        specifications: ["ANSI Z87.1 Certified", "UV Protection", "Adjustable Strap"]
+        specifications: ["ANSI Z87.1 Certified", "UV Protection", "Adjustable Strap"],
+        variants: [],
+        parsedVariants: [
+          {
+            id: "v1",
+            name: "Clear Lens",
+            image: "https://images.unsplash.com/photo-1673201159882-725f2b63dc39"
+          },
+          {
+            id: "v2",
+            name: "Tinted Lens",
+            image: "https://images.unsplash.com/photo-1584467541268-b040f83be3fd"
+          }
+        ]
       },
       {
         name: "Digital Caliper",
@@ -103,12 +129,31 @@ export class MemStorage implements IStorage {
         categoryId: 3,
         sku: "DC-3001",
         inStock: true,
-        specifications: ["0-6 Inch Range", "0.001\" Resolution", "IP54 Rated"]
+        specifications: ["0-6 Inch Range", "0.001\" Resolution", "IP54 Rated"],
+        variants: [],
+        parsedVariants: [
+          {
+            id: "v1",
+            name: "Standard",
+            image: "https://images.unsplash.com/photo-1693155257465-f29b58ecadaa"
+          },
+          {
+            id: "v2",
+            name: "Professional",
+            image: "https://images.unsplash.com/photo-1589438102453-a437dd5df038"
+          }
+        ]
       }
     ];
 
     products.forEach((prod, index) => {
-      this.products.set(index + 1, { ...prod, id: index + 1 });
+      const variants = JSON.stringify(prod.parsedVariants);
+      this.products.set(index + 1, { 
+        ...prod, 
+        id: index + 1,
+        variants: [variants],
+        parsedVariants: prod.parsedVariants
+      });
     });
   }
 }
