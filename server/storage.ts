@@ -1,8 +1,18 @@
 import { Category, InsertCategory, InsertProduct, Product, ProductVariant, User, InsertUser } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
 
 const MemoryStore = createMemoryStore(session);
+const scryptAsync = promisify(scrypt);
+
+async function createInitialAdminPassword() {
+  const password = "adminpassword";
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 export interface IStorage {
   // User management
@@ -51,7 +61,7 @@ export class MemStorage implements IStorage {
     // Update IDs based on seeded data
     this.nextProductId = Math.max(...Array.from(this.products.keys()), 0) + 1;
     this.nextCategoryId = Math.max(...Array.from(this.categories.keys()), 0) + 1;
-    this.nextUserId = Math.max(...Array.from(this.users.keys()), 0) + 1; // Start with 1 for users
+    this.nextUserId = Math.max(...Array.from(this.users.keys()), 0) + 1;
   }
 
   // User management methods
@@ -69,12 +79,15 @@ export class MemStorage implements IStorage {
 
   async createUser(userData: InsertUser): Promise<User> {
     const id = this.nextUserId++;
-    const user: User = { ...userData, id };
+    const user: User = { 
+      ...userData, 
+      id,
+      role: userData.role || "user"  
+    };
     this.users.set(id, user);
     return user;
   }
 
-  // Existing methods remain unchanged
   async getCategories(): Promise<Category[]> {
     return Array.from(this.categories.values());
   }
@@ -157,7 +170,7 @@ export class MemStorage implements IStorage {
     };
   }
 
-  private seedData() {
+  private async seedData() {
     // Seed categories
     const categories: InsertCategory[] = [
       {
@@ -253,10 +266,11 @@ export class MemStorage implements IStorage {
       });
     });
 
-    // Create initial admin user
+    // Create initial admin user with proper password hashing
+    const adminPassword = await createInitialAdminPassword();
     const adminUser: InsertUser = {
       username: "admin",
-      password: "$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu9.m", // This is a hashed version of "adminpassword"
+      password: adminPassword,
       role: "admin"
     };
     this.createUser(adminUser);
