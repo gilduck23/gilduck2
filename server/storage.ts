@@ -1,30 +1,40 @@
 import { Category, InsertCategory, InsertProduct, Product, ProductVariant } from "@shared/schema";
 
 export interface IStorage {
+  // Existing methods
   getCategories(): Promise<Category[]>;
   getProducts(categoryId?: number): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   searchProducts(query: string): Promise<Product[]>;
   addProduct(product: InsertProduct): Promise<Product>;
   deleteProduct(id: number): Promise<boolean>;
+
+  // New category management methods
+  addCategory(category: InsertCategory): Promise<Category>;
+  deleteCategory(id: number): Promise<boolean>;
+  updateCategory(id: number, category: InsertCategory): Promise<Category | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private categories: Map<number, Category>;
   private products: Map<number, Product>;
   private nextProductId: number;
+  private nextCategoryId: number;
 
   constructor() {
     this.categories = new Map();
     this.products = new Map();
     this.nextProductId = 1;
+    this.nextCategoryId = 1;
 
     // Seed data
     this.seedData();
-    // Update nextProductId based on seeded data
+    // Update IDs based on seeded data
     this.nextProductId = Math.max(...Array.from(this.products.keys())) + 1;
+    this.nextCategoryId = Math.max(...Array.from(this.categories.keys())) + 1;
   }
 
+  // Existing methods remain unchanged
   async getCategories(): Promise<Category[]> {
     return Array.from(this.categories.values());
   }
@@ -44,7 +54,7 @@ export class MemStorage implements IStorage {
   async searchProducts(query: string): Promise<Product[]> {
     const products = Array.from(this.products.values());
     const lowercaseQuery = query.toLowerCase();
-    return products.filter(p => 
+    return products.filter(p =>
       p.name.toLowerCase().includes(lowercaseQuery) ||
       p.description.toLowerCase().includes(lowercaseQuery)
     );
@@ -65,6 +75,34 @@ export class MemStorage implements IStorage {
 
   async deleteProduct(id: number): Promise<boolean> {
     return this.products.delete(id);
+  }
+
+  // New category management methods
+  async addCategory(category: InsertCategory): Promise<Category> {
+    const id = this.nextCategoryId++;
+    const newCategory: Category = { ...category, id };
+    this.categories.set(id, newCategory);
+    return newCategory;
+  }
+
+  async deleteCategory(id: number): Promise<boolean> {
+    // Check if category has products
+    const hasProducts = Array.from(this.products.values()).some(
+      product => product.categoryId === id
+    );
+    if (hasProducts) {
+      throw new Error("Cannot delete category with existing products");
+    }
+    return this.categories.delete(id);
+  }
+
+  async updateCategory(id: number, category: InsertCategory): Promise<Category | undefined> {
+    if (!this.categories.has(id)) {
+      return undefined;
+    }
+    const updatedCategory: Category = { ...category, id };
+    this.categories.set(id, updatedCategory);
+    return updatedCategory;
   }
 
   private seedData() {
@@ -171,8 +209,8 @@ export class MemStorage implements IStorage {
 
     products.forEach((prod, index) => {
       const variants = JSON.stringify(prod.parsedVariants);
-      this.products.set(index + 1, { 
-        ...prod, 
+      this.products.set(index + 1, {
+        ...prod,
         id: index + 1,
         variants: [variants],
         parsedVariants: prod.parsedVariants
