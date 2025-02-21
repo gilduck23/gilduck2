@@ -134,14 +134,15 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.get("/api/user", (req, res, next) => {
+  app.get("/api/user", async (req, res, next) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Not authenticated" });
       }
       res.json({ ...req.user, password: undefined });
     } catch (error) {
-      next(error);
+      console.error('Error in /api/user:', error);
+      return res.status(500).json({ message: "Internal server error" });
     }
   });
 
