@@ -5,18 +5,24 @@ export interface IStorage {
   getProducts(categoryId?: number): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   searchProducts(query: string): Promise<Product[]>;
+  addProduct(product: InsertProduct): Promise<Product>;
+  deleteProduct(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private categories: Map<number, Category>;
   private products: Map<number, Product>;
+  private nextProductId: number;
 
   constructor() {
     this.categories = new Map();
     this.products = new Map();
+    this.nextProductId = 1;
 
     // Seed data
     this.seedData();
+    // Update nextProductId based on seeded data
+    this.nextProductId = Math.max(...Array.from(this.products.keys())) + 1;
   }
 
   async getCategories(): Promise<Category[]> {
@@ -42,6 +48,23 @@ export class MemStorage implements IStorage {
       p.name.toLowerCase().includes(lowercaseQuery) ||
       p.description.toLowerCase().includes(lowercaseQuery)
     );
+  }
+
+  async addProduct(product: InsertProduct): Promise<Product> {
+    const id = this.nextProductId++;
+    const newProduct: Product = {
+      ...product,
+      id,
+      variants: product.variants || [],
+      specifications: product.specifications || [],
+      inStock: product.inStock ?? true
+    };
+    this.products.set(id, newProduct);
+    return newProduct;
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    return this.products.delete(id);
   }
 
   private seedData() {
