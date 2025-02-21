@@ -119,3 +119,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+// Add this endpoint to test Supabase connection
+app.get("/api/test-supabase", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select()
+      .limit(1);
+      
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to test Supabase connection" });
+  }
+});
