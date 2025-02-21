@@ -7,6 +7,8 @@ import Home from "@/pages/home";
 import Product from "@/pages/product";
 import Admin from "@/pages/admin";
 import Navbar from "@/components/layout/navbar";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   return (
@@ -16,7 +18,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/product/:id" component={Product} />
-          <Route path="/admin" component={Admin} />
+          <ProtectedRoute path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -27,8 +29,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

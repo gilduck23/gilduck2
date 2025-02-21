@@ -1,6 +1,18 @@
-import { Category, InsertCategory, InsertProduct, Product, ProductVariant } from "@shared/schema";
+import { Category, InsertCategory, InsertProduct, Product, ProductVariant, User, InsertUser } from "@shared/schema";
+import session from "express-session";
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
+  // User management
+  getUser(id: number): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+
+  // Session store
+  sessionStore: session.Store;
+
   // Existing methods
   getCategories(): Promise<Category[]>;
   getProducts(categoryId?: number): Promise<Product[]>;
@@ -8,8 +20,6 @@ export interface IStorage {
   searchProducts(query: string): Promise<Product[]>;
   addProduct(product: InsertProduct): Promise<Product>;
   deleteProduct(id: number): Promise<boolean>;
-
-  // New category management methods
   addCategory(category: InsertCategory): Promise<Category>;
   deleteCategory(id: number): Promise<boolean>;
   updateCategory(id: number, category: InsertCategory): Promise<Category | undefined>;
@@ -19,20 +29,49 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private categories: Map<number, Category>;
   private products: Map<number, Product>;
+  private users: Map<number, User>;
   private nextProductId: number;
   private nextCategoryId: number;
+  private nextUserId: number;
+  public sessionStore: session.Store;
 
   constructor() {
     this.categories = new Map();
     this.products = new Map();
+    this.users = new Map();
     this.nextProductId = 1;
     this.nextCategoryId = 1;
+    this.nextUserId = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
 
     // Seed data
     this.seedData();
     // Update IDs based on seeded data
-    this.nextProductId = Math.max(...Array.from(this.products.keys())) + 1;
-    this.nextCategoryId = Math.max(...Array.from(this.categories.keys())) + 1;
+    this.nextProductId = Math.max(...Array.from(this.products.keys()), 0) + 1;
+    this.nextCategoryId = Math.max(...Array.from(this.categories.keys()), 0) + 1;
+    this.nextUserId = 1; // Start with 1 for users
+  }
+
+  // User management methods
+  async getUser(id: number): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) throw new Error("User not found");
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      user => user.username === username
+    );
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const id = this.nextUserId++;
+    const user: User = { ...userData, id };
+    this.users.set(id, user);
+    return user;
   }
 
   // Existing methods remain unchanged
@@ -66,9 +105,8 @@ export class MemStorage implements IStorage {
     const newProduct: Product = {
       ...product,
       id,
-      variants: product.variants || [],
       specifications: product.specifications || [],
-      inStock: product.inStock ?? true
+      variants: product.variants || []
     };
     this.products.set(id, newProduct);
     return newProduct;
@@ -78,7 +116,6 @@ export class MemStorage implements IStorage {
     return this.products.delete(id);
   }
 
-  // New category management methods
   async addCategory(category: InsertCategory): Promise<Category> {
     const id = this.nextCategoryId++;
     const newCategory: Category = { ...category, id };
@@ -87,7 +124,6 @@ export class MemStorage implements IStorage {
   }
 
   async deleteCategory(id: number): Promise<boolean> {
-    // Check if category has products
     const hasProducts = Array.from(this.products.values()).some(
       product => product.categoryId === id
     );
