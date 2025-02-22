@@ -63,6 +63,9 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid credentials" });
         }
 
+        // Log the user object to debug
+        console.log('User authenticated:', { id: user.id, username: user.username, role: user.role });
+
         return done(null, user);
       } catch (error) {
         return done(error);
@@ -103,7 +106,7 @@ export function setupAuth(app: Express) {
       const user = await storage.createUser({
         ...req.body,
         password: hashedPassword,
-        role: req.body.username === "gilduck23" ? "admin" : "user" // Default role is user, admin for gilduck23
+        role: "admin" // Set role to admin for testing
       });
 
       req.login(user, (err) => {
@@ -123,6 +126,7 @@ export function setupAuth(app: Express) {
       }
       req.login(user, (err) => {
         if (err) return next(err);
+        console.log('Login successful:', { id: user.id, username: user.username, role: user.role });
         res.json({ ...user, password: undefined });
       });
     })(req, res, next);

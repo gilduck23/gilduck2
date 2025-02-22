@@ -42,8 +42,10 @@ export default function AuthPage() {
 
   async function onSubmit(data: LoginData) {
     try {
-      await loginMutation.mutateAsync(data);
-      setLocation("/admin");
+      const result = await loginMutation.mutateAsync(data);
+      if (result.role === "admin") {
+        setLocation("/admin");
+      }
     } catch (error) {
       // Error is handled by the mutation
     }
