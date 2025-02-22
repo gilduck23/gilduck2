@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import Product from "@/pages/product";
 import Admin from "@/pages/admin";
 import Auth from "@/pages/auth";
+import Register from "@/pages/register";
 import Navbar from "@/components/layout/navbar";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -20,6 +21,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/product/:id" component={Product} />
           <Route path="/auth" component={Auth} />
+          <Route path="/register" component={Register} />
           <ProtectedRoute path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>
