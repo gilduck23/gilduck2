@@ -32,12 +32,6 @@ export default function AuthPage() {
   const { loginMutation, user } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect to admin if already logged in
-  if (user) {
-    setLocation("/admin");
-    return null;
-  }
-
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -53,6 +47,12 @@ export default function AuthPage() {
     } catch (error) {
       // Error is handled by the mutation
     }
+  }
+
+  // Redirect to admin if already logged in
+  if (user?.role === "admin") {
+    setLocation("/admin");
+    return null;
   }
 
   return (
