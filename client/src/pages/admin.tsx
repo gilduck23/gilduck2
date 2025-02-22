@@ -99,12 +99,7 @@ export default function AdminPage() {
   // Product mutations
   const addProduct = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      const productWithVariants = {
-        ...data,
-        variants: variants.length > 0 ? [JSON.stringify(variants)] : []
-      };
-
-      const res = await apiRequest("POST", "/api/admin/products", productWithVariants);
+      const res = await apiRequest("POST", "/api/admin/products", data);
       return res.json();
     },
     onSuccess: () => {
@@ -189,7 +184,21 @@ export default function AdminPage() {
   });
 
   async function onProductSubmit(data: InsertProduct) {
-    addProduct.mutate(data);
+    try {
+      console.log('Form data before submission:', data); 
+      console.log('Variants before submission:', variants); 
+
+      const productWithVariants = {
+        ...data,
+        variants: variants.length > 0 ? variants : [],
+        specifications: [] 
+      };
+
+      console.log('Product data being submitted:', productWithVariants); 
+      addProduct.mutate(productWithVariants);
+    } catch (error) {
+      console.error('Error in product submission:', error);
+    }
   }
 
   async function onCategorySubmit(data: InsertCategory) {

@@ -11,10 +11,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Use requireAdmin middleware for admin routes
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
+      console.log('Received product data:', req.body); // Debug log
       const productData = insertProductSchema.parse(req.body);
+      console.log('Parsed product data:', productData); // Debug log after validation
       const product = await storage.addProduct(productData);
       res.status(201).json(product);
     } catch (error) {
+      console.error('Product validation error:', error); // Debug log
       res.status(400).json({ message: "Invalid product data", error });
     }
   });
@@ -115,9 +118,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     res.json(product);
   });
-
-  // Add this endpoint to test Supabase connection
-  // Remove test endpoint since it's causing errors and supabase is not properly initialized
 
   const httpServer = createServer(app);
   return httpServer;
