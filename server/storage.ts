@@ -107,7 +107,15 @@ export class SupabaseStorage implements IStorage {
   async addProduct(product: InsertProduct): Promise<Product> {
     const { data, error } = await supabase
       .from('products')
-      .insert(product)
+      .insert({
+        name: product.name,
+        description: product.description,
+        image: product.image,
+        category_id: product.categoryId, 
+        sku: product.sku,
+        specifications: product.specifications,
+        variants: product.variants?.map(v => JSON.stringify(v)) 
+      })
       .select()
       .single();
 
