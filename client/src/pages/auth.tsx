@@ -29,8 +29,14 @@ const loginSchema = z.object({
 type LoginData = z.infer<typeof loginSchema>;
 
 export default function AuthPage() {
-  const { loginMutation } = useAuth();
+  const { loginMutation, user } = useAuth();
   const [, setLocation] = useLocation();
+
+  // Redirect to admin if already logged in
+  if (user) {
+    setLocation("/admin");
+    return null;
+  }
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),

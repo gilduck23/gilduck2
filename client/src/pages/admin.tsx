@@ -11,15 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, LogOut } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 export default function AdminPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Product form
   const productForm = useForm<InsertProduct>({
@@ -44,6 +46,16 @@ export default function AdminPage() {
       image: ""
     }
   });
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      setLocation("/auth");
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+  };
 
   // Queries
   const { data: products } = useQuery<Product[]>({
@@ -190,6 +202,17 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <Button 
+          variant="outline"
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          {logoutMutation.isPending ? "Logging out..." : "Logout"}
+        </Button>
+      </div>
       <Tabs defaultValue="products" className="space-y-8">
         <TabsList>
           <TabsTrigger value="products">Products</TabsTrigger>
