@@ -196,10 +196,6 @@ export default function AdminPage() {
     addCategory.mutate(data);
   }
 
-  if (!user || user.role !== "admin") {
-    return null;
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex justify-between items-center mb-8">
@@ -269,7 +265,6 @@ export default function AdminPage() {
                     )}
                   />
 
-
                   <FormField
                     control={productForm.control}
                     name="sku"
@@ -283,6 +278,7 @@ export default function AdminPage() {
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={productForm.control}
                     name="categoryId"
