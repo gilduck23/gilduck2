@@ -5,14 +5,20 @@ import createMemoryStore from "memorystore";
 
 const MemoryStore = createMemoryStore(session);
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-  throw new Error('Missing Supabase credentials');
+// Add logging to debug environment variables
+console.log('Checking Supabase credentials...');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Environment variables check:', {
+    hasSupabaseUrl: !!supabaseUrl,
+    hasSupabaseKey: !!supabaseKey
+  });
+  throw new Error('Missing Supabase credentials. Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are properly set in the environment.');
 }
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export class SupabaseStorage implements IStorage {
   public sessionStore: session.Store;
