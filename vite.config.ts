@@ -13,13 +13,9 @@ export default defineConfig({
     react(),
     runtimeErrorOverlay(),
     themePlugin(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
+    // Plugin dinamis hanya dijalankan di development mode dan jika REPL_ID ada
+    ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID
+      ? [import("@replit/vite-plugin-cartographer").then((m) => m.cartographer())]
       : []),
   ],
   resolve: {
@@ -28,9 +24,14 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "shared"),
     },
   },
-  root: path.resolve(__dirname, "client"),
+  root: path.resolve(__dirname, "client"), // Root folder untuk proyek
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
-    emptyOutDir: true,
+    outDir: path.resolve(__dirname, "dist"), // Output build ke folder dist/
+    emptyOutDir: true, // Bersihkan folder dist sebelum build
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "client", "index.html"), // Lokasi file index.html
+      },
+    },
   },
 });
