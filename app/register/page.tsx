@@ -2,34 +2,40 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg('');
+
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${location.origin}/auth/callback`,
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) {
-        setErrorMsg(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMsg(data.message || 'Registration failed');
       } else {
         router.push('/login');
       }
     } catch (error) {
       setErrorMsg('An error occurred during registration');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -66,9 +72,10 @@ export default function Register() {
           <div>
             <button
               type="submit"
-              className="w-full rounded-md bg-blue-500 p-2 text-white hover:bg-blue-600"
+              disabled={isLoading}
+              className="w-full rounded-md bg-blue-500 p-2 text-white hover:bg-blue-600 disabled:bg-blue-300"
             >
-              Register
+              {isLoading ? 'Registering...' : 'Register'}
             </button>
           </div>
         </form>
