@@ -6,8 +6,8 @@ import { setupVite, serveStatic, log } from "./vite";
 console.log('Starting server with environment check...');
 console.log('Environment:', {
   NODE_ENV: process.env.NODE_ENV,
-  hasSupabaseUrl: !!process.env.VITE_SUPABASE_URL,
-  hasSupabaseKey: !!process.env.VITE_SUPABASE_ANON_KEY
+  hasSupabaseUrl: !!process.env.SUPABASE_URL,
+  hasSupabaseKey: !!process.env.SUPABASE_ANON_KEY
 });
 
 const app = express();
