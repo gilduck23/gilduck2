@@ -1,13 +1,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
   throw new Error(
-    "VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set in environment variables",
+    "SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables",
   );
 }
 
 export const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
