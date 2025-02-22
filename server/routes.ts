@@ -8,6 +8,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   const { requireAdmin } = setupAuth(app);
 
+  // Add a default category if none exists
+  const categories = await storage.getCategories();
+  if (categories.length === 0) {
+    await storage.addCategory({
+      name: "Default Category",
+      description: "Default category for testing",
+      image: "https://via.placeholder.com/150"
+    });
+  }
+
   // Use requireAdmin middleware for admin routes
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {

@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
@@ -20,11 +21,19 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   image: text("image").notNull(),
-  categoryId: integer("category_id").notNull(),
+  categoryId: integer("category_id").references(() => categories.id).notNull(),
   sku: text("sku").notNull(),
   specifications: text("specifications").array(),
   variants: text("variants").array(),
 });
+
+// Define the relationship between products and categories
+export const productsRelations = relations(products, ({ one }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
+}));
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
